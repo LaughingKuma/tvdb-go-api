@@ -23,18 +23,12 @@ func (c *Client) GetSeriesByID(id int) (*Series, error) {
 }
 
 
-func (c *Client) GetSeriesEpisodes(seriesID int, seasonType string, page int) ([]Episode, error) {
+func (c *Client) GetSeriesEpisodes(seriesID int, seasonType string, page int) ([]Episode, int, int, error) {
     path := fmt.Sprintf("/series/%d/episodes/%s?page=%d", seriesID, seasonType, page)
     
-    var response struct {
-        Data struct {
-            Episodes []Episode `json:"episodes"`
-        } `json:"data"`
-    }
-
     resp, err := c.doRequest("GET", path, nil)
     if err != nil {
-        return nil, fmt.Errorf("failed to get series episodes: %w", err)
+        return nil, 0, 0, fmt.Errorf("failed to get series episodes: %w", err)
     }
     defer resp.Body.Close()
 
@@ -42,13 +36,15 @@ func (c *Client) GetSeriesEpisodes(seriesID int, seasonType string, page int) ([
     bodyBytes, _ := io.ReadAll(resp.Body)
     fmt.Printf("Raw response: %s\n", string(bodyBytes))
 
+    var response SeriesEpisodesResponse
     err = json.Unmarshal(bodyBytes, &response)
     if err != nil {
-        return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+        return nil, 0, 0, fmt.Errorf("failed to unmarshal response: %w", err)
     }
 
-    return response.Data.Episodes, nil
+    return response.Data.Episodes, response.Links.TotalItems, response.Links.PageSize, nil
 }
+
 
 // GetEpisodeByID fetches an episode by its ID
 func (c *Client) GetEpisodeByID(id int) (*Episode, error) {

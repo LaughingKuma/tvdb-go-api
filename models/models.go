@@ -148,3 +148,18 @@ type SearchResult struct {
 	Image    string `json:"image_url"`
 	Overview string `json:"overview"`
 }
+
+type SeriesEpisodesResponse struct {
+	Status string `json:"status"`
+	Data   struct {
+		Series   Series    `json:"series"`
+		Episodes []Episode `json:"episodes"`
+	} `json:"data"`
+	Links struct {
+		Prev       string `json:"prev"`
+		Self       string `json:"self"`
+		Next       string `json:"next"`
+		TotalItems int    `json:"total_items"`
+		PageSize   int    `json:"page_size"`
+	} `json:"links"`
+}
