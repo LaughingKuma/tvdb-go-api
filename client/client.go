@@ -14,6 +14,14 @@ import (
 )
 
 // Client represents the TVDB API client
+
+type ClientInterface interface {
+    Get(path string, result interface{}) error
+    DoRequest(method, path string, body io.Reader) (*http.Response, error)
+    Post(path string, body interface{}, result interface{}) error
+    SetBaseURL(url string)
+}
+
 type Client struct {
 	Auth       *auth.Auth
 	httpClient *retryablehttp.Client

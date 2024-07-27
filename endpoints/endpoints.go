@@ -11,7 +11,7 @@ import (
 )
 
 // GetSeriesByID fetches a series by its ID.
-func GetSeriesByID(c *client.Client, id int) (*models.Series, error) {
+func GetSeriesByID(c client.ClientInterface, id int) (*models.Series, error) {
 	path := fmt.Sprintf("/series/%d", id)
 	
 	var response struct {
@@ -27,7 +27,7 @@ func GetSeriesByID(c *client.Client, id int) (*models.Series, error) {
 }
 
 // GetSeriesEpisodes fetches episodes for a series.
-func GetSeriesEpisodes(c *client.Client, seriesID int, seasonType string, page int) ([]models.Episode, int, int, error) {
+func GetSeriesEpisodes(c client.ClientInterface, seriesID int, seasonType string, page int) ([]models.Episode, int, int, error) {
     path := fmt.Sprintf("/series/%d/episodes/%s?page=%d", seriesID, seasonType, page)
     
     resp, err := c.DoRequest("GET", path, nil)
@@ -48,7 +48,7 @@ func GetSeriesEpisodes(c *client.Client, seriesID int, seasonType string, page i
 }
 
 // GetEpisodeByID fetches an episode by its ID.
-func GetEpisodeByID(c *client.Client, id int) (*models.Episode, error) {
+func GetEpisodeByID(c client.ClientInterface, id int) (*models.Episode, error) {
 	path := fmt.Sprintf("/episodes/%d", id)
 	
 	var response struct {
@@ -64,7 +64,7 @@ func GetEpisodeByID(c *client.Client, id int) (*models.Episode, error) {
 }
 
 // GetSeriesSeasons fetches seasons for a series.
-func GetSeriesSeasons(c *client.Client, seriesID int) ([]models.Season, error) {
+func GetSeriesSeasons(c client.ClientInterface, seriesID int) ([]models.Season, error) {
 	path := fmt.Sprintf("/series/%d/seasons", seriesID)
 	
 	var response struct {
@@ -80,7 +80,7 @@ func GetSeriesSeasons(c *client.Client, seriesID int) ([]models.Season, error) {
 }
 
 // GetMovieByID fetches a movie by its ID.
-func GetMovieByID(c *client.Client, id int) (*models.Movie, error) {
+func GetMovieByID(c client.ClientInterface, id int) (*models.Movie, error) {
 	path := fmt.Sprintf("/movies/%d", id)
 	
 	var response struct {

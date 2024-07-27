@@ -1,3 +1,4 @@
+// endpoints/endpoints_test.go
 package endpoints
 
 import (
@@ -8,15 +9,19 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/LaughinKuma/tvdb-go-api/client"
 	"github.com/LaughinKuma/tvdb-go-api/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-// MockClient is a mock implementation of the client.Client
+// MockClient is a mock implementation of the client.ClientInterface
 type MockClient struct {
 	mock.Mock
 }
+
+// Ensure MockClient implements client.ClientInterface
+var _ client.ClientInterface = (*MockClient)(nil)
 
 func (m *MockClient) Get(path string, result interface{}) error {
 	args := m.Called(path, result)
@@ -26,6 +31,11 @@ func (m *MockClient) Get(path string, result interface{}) error {
 func (m *MockClient) DoRequest(method, path string, body io.Reader) (*http.Response, error) {
 	args := m.Called(method, path, body)
 	return args.Get(0).(*http.Response), args.Error(1)
+}
+
+func (m *MockClient) Post(path string, body interface{}, result interface{}) error {
+	args := m.Called(path, body, result)
+	return args.Error(0)
 }
 
 func TestGetSeriesByID(t *testing.T) {
