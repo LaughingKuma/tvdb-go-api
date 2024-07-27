@@ -99,7 +99,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-Enjoy it, do whatever you want with this. I just did this for fun.
+Enjoy it, do whatever you want with this. I just did this for fun.   
 If it's of service to you, go ahead. It's an example of over engineering.
 
 ## Disclaimer
