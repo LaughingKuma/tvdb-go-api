@@ -1,4 +1,4 @@
-package tvdb
+package models
 
 import (
 	"time"

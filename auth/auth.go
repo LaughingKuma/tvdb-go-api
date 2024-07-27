@@ -1,4 +1,5 @@
-package tvdb
+// Package auth provides authentication functionality for the TVDB API.
+package auth
 
 import (
 	"encoding/json"
@@ -10,19 +11,24 @@ import (
 )
 
 const (
-	baseURL    = "https://api4.thetvdb.com/v4"
-	loginPath  = "/login"
-	authHeader = "Authorization"
+	// BaseURL is the base URL for the TVDB API.
+	DefaultBaseURL = "https://api4.thetvdb.com/v4"
+	
+	loginPath = "/login"
+	
+	// AuthHeader is the name of the authorization header used in API requests.
+	AuthHeader = "Authorization"
 )
 
-// Auth holds the authentication information
+// Auth holds the authentication information for the TVDB API.
 type Auth struct {
-	APIKey string
-	Token  string
-	client *retryablehttp.Client
+	APIKey  string
+	Token   string
+	client  *retryablehttp.Client
+	baseURL string
 }
 
-// loginResponse represents the structure of the login API response
+
 type loginResponse struct {
 	Status string `json:"status"`
 	Data   struct {
@@ -30,22 +36,28 @@ type loginResponse struct {
 	} `json:"data"`
 }
 
-// NewAuth creates a new Auth instance
+// NewAuth creates a new Auth instance.
 func NewAuth(apiKey string) *Auth {
+	return NewAuthWithBaseURL(apiKey, DefaultBaseURL)
+}
+
+
+func NewAuthWithBaseURL(apiKey, baseURL string) *Auth {
 	client := retryablehttp.NewClient()
 	client.RetryMax = 3
 	client.RetryWaitMin = 1 * time.Second
 	client.RetryWaitMax = 5 * time.Second
 
 	return &Auth{
-		APIKey: apiKey,
-		client: client,
+		APIKey:  apiKey,
+		client:  client,
+		baseURL: baseURL,
 	}
 }
 
-// Login authenticates with the TVDB API and obtains a token
+// Login authenticates with the TVDB API and obtains a token.
 func (a *Auth) Login() error {
-	url := baseURL + loginPath
+	url := a.baseURL + loginPath
 
 	body := map[string]string{"apikey": a.APIKey}
 	jsonBody, err := json.Marshal(body)
@@ -82,17 +94,17 @@ func (a *Auth) Login() error {
 	return nil
 }
 
-// GetAuthHeader returns the authorization header for API requests
+// GetAuthHeader returns the authorization header for API requests.
 func (a *Auth) GetAuthHeader() string {
 	return fmt.Sprintf("Bearer %s", a.Token)
 }
 
-// IsAuthenticated checks if the current token is valid
+// IsAuthenticated checks if the current token is valid.
 func (a *Auth) IsAuthenticated() bool {
 	return a.Token != ""
 }
 
-// RefreshToken attempts to refresh the authentication token
+// RefreshToken attempts to refresh the authentication token.
 func (a *Auth) RefreshToken() error {
 	// For TVDB API v4, we simply re-login to refresh the token
 	return a.Login()

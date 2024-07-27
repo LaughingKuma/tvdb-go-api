@@ -1,15 +1,22 @@
-package tvdb
+package search
 
 import (
 	"fmt"
 	"net/url"
+
+	"github.com/LaughinKuma/tvdb-go-api/models"
 )
 
-func (c *Client) Search(query string) ([]SearchResult, error) {
+// ClientInterface defines the methods we need from the client
+type ClientInterface interface {
+	Get(path string, result interface{}) error
+}
+
+func Search(c ClientInterface, query string) ([]models.SearchResult, error) {
 	path := fmt.Sprintf("/search?query=%s", url.QueryEscape(query))
 	
 	var response struct {
-		Data []SearchResult `json:"data"`
+		Data []models.SearchResult `json:"data"`
 	}
 
 	err := c.Get(path, &response)

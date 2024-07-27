@@ -1,4 +1,5 @@
-package tvdb
+// Package client provides the main client for interacting with the TVDB API.
+package client
 
 import (
 	"bytes"
@@ -8,28 +9,29 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/LaughinKuma/tvdb-go-api/auth"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
 // Client represents the TVDB API client
 type Client struct {
-	*Auth
+	Auth       *auth.Auth
 	httpClient *retryablehttp.Client
 	baseURL    string
 }
 
 // NewClient creates a new TVDB API client
 func NewClient(apiKey string) (*Client, error) {
-	auth := NewAuth(apiKey)
+	authClient := auth.NewAuth(apiKey)
 	httpClient := retryablehttp.NewClient()
 	httpClient.RetryMax = 3
 	httpClient.RetryWaitMin = 1 * time.Second
 	httpClient.RetryWaitMax = 5 * time.Second
 
 	client := &Client{
-		Auth:       auth,
+		Auth:       authClient,
 		httpClient: httpClient,
-		baseURL:    baseURL,
+		baseURL:    auth.DefaultBaseURL,
 	}
 
 	err := client.Auth.Login()
@@ -40,8 +42,8 @@ func NewClient(apiKey string) (*Client, error) {
 	return client, nil
 }
 
-// doRequest performs an HTTP request and handles authentication
-func (c *Client) doRequest(method, path string, body io.Reader) (*http.Response, error) {
+// DoRequest performs an HTTP request and handles authentication
+func (c *Client) DoRequest(method, path string, body io.Reader) (*http.Response, error) {
 	url := c.baseURL + path
 	req, err := retryablehttp.NewRequest(method, url, body)
 	if err != nil {
@@ -49,7 +51,7 @@ func (c *Client) doRequest(method, path string, body io.Reader) (*http.Response,
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set(authHeader, c.GetAuthHeader())
+	req.Header.Set(auth.AuthHeader, c.Auth.GetAuthHeader())
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -64,7 +66,7 @@ func (c *Client) doRequest(method, path string, body io.Reader) (*http.Response,
 		}
 
 		// Retry the request with the new token
-		req.Header.Set(authHeader, c.GetAuthHeader())
+		req.Header.Set(auth.AuthHeader, c.Auth.GetAuthHeader())
 		resp, err = c.httpClient.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("error sending request after token refresh: %w", err)
@@ -76,7 +78,7 @@ func (c *Client) doRequest(method, path string, body io.Reader) (*http.Response,
 
 // Get performs a GET request to the specified path
 func (c *Client) Get(path string, result interface{}) error {
-	resp, err := c.doRequest("GET", path, nil)
+	resp, err := c.DoRequest("GET", path, nil)
 	if err != nil {
 		return err
 	}
@@ -101,7 +103,7 @@ func (c *Client) Post(path string, body interface{}, result interface{}) error {
 		return fmt.Errorf("error marshaling request body: %w", err)
 	}
 
-	resp, err := c.doRequest("POST", path, bytes.NewReader(jsonBody))
+	resp, err := c.DoRequest("POST", path, bytes.NewReader(jsonBody))
 	if err != nil {
 		return err
 	}

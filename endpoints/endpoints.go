@@ -1,17 +1,21 @@
-package tvdb
+// Package endpoints provides functions for interacting with specific TVDB API endpoints.
+package endpoints
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+
+	"github.com/LaughinKuma/tvdb-go-api/client"
+	"github.com/LaughinKuma/tvdb-go-api/models"
 )
 
-// GetSeriesByID fetches a series by its ID
-func (c *Client) GetSeriesByID(id int) (*Series, error) {
+// GetSeriesByID fetches a series by its ID.
+func GetSeriesByID(c *client.Client, id int) (*models.Series, error) {
 	path := fmt.Sprintf("/series/%d", id)
 	
 	var response struct {
-		Data Series `json:"data"`
+		Data models.Series `json:"data"`
 	}
 
 	err := c.Get(path, &response)
@@ -22,21 +26,19 @@ func (c *Client) GetSeriesByID(id int) (*Series, error) {
 	return &response.Data, nil
 }
 
-
-func (c *Client) GetSeriesEpisodes(seriesID int, seasonType string, page int) ([]Episode, int, int, error) {
+// GetSeriesEpisodes fetches episodes for a series.
+func GetSeriesEpisodes(c *client.Client, seriesID int, seasonType string, page int) ([]models.Episode, int, int, error) {
     path := fmt.Sprintf("/series/%d/episodes/%s?page=%d", seriesID, seasonType, page)
     
-    resp, err := c.doRequest("GET", path, nil)
+    resp, err := c.DoRequest("GET", path, nil)
     if err != nil {
         return nil, 0, 0, fmt.Errorf("failed to get series episodes: %w", err)
     }
     defer resp.Body.Close()
 
-    // Print raw response for debugging
     bodyBytes, _ := io.ReadAll(resp.Body)
-    fmt.Printf("Raw response: %s\n", string(bodyBytes))
 
-    var response SeriesEpisodesResponse
+    var response models.SeriesEpisodesResponse
     err = json.Unmarshal(bodyBytes, &response)
     if err != nil {
         return nil, 0, 0, fmt.Errorf("failed to unmarshal response: %w", err)
@@ -45,13 +47,12 @@ func (c *Client) GetSeriesEpisodes(seriesID int, seasonType string, page int) ([
     return response.Data.Episodes, response.Links.TotalItems, response.Links.PageSize, nil
 }
 
-
-// GetEpisodeByID fetches an episode by its ID
-func (c *Client) GetEpisodeByID(id int) (*Episode, error) {
+// GetEpisodeByID fetches an episode by its ID.
+func GetEpisodeByID(c *client.Client, id int) (*models.Episode, error) {
 	path := fmt.Sprintf("/episodes/%d", id)
 	
 	var response struct {
-		Data Episode `json:"data"`
+		Data models.Episode `json:"data"`
 	}
 
 	err := c.Get(path, &response)
@@ -62,12 +63,12 @@ func (c *Client) GetEpisodeByID(id int) (*Episode, error) {
 	return &response.Data, nil
 }
 
-// GetSeriesSeasons fetches seasons for a series
-func (c *Client) GetSeriesSeasons(seriesID int) ([]Season, error) {
+// GetSeriesSeasons fetches seasons for a series.
+func GetSeriesSeasons(c *client.Client, seriesID int) ([]models.Season, error) {
 	path := fmt.Sprintf("/series/%d/seasons", seriesID)
 	
 	var response struct {
-		Data []Season `json:"data"`
+		Data []models.Season `json:"data"`
 	}
 
 	err := c.Get(path, &response)
@@ -78,12 +79,12 @@ func (c *Client) GetSeriesSeasons(seriesID int) ([]Season, error) {
 	return response.Data, nil
 }
 
-// GetMovieByID fetches a movie by its ID
-func (c *Client) GetMovieByID(id int) (*Movie, error) {
+// GetMovieByID fetches a movie by its ID.
+func GetMovieByID(c *client.Client, id int) (*models.Movie, error) {
 	path := fmt.Sprintf("/movies/%d", id)
 	
 	var response struct {
-		Data Movie `json:"data"`
+		Data models.Movie `json:"data"`
 	}
 
 	err := c.Get(path, &response)
